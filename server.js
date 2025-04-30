@@ -1,47 +1,33 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
 import fetch from "node-fetch";
+import nodemailer from "nodemailer";
 
 dotenv.config();
-const app = express();
-const PORT = process.env.PORT || 5000;
 
+const app = express();
 app.use(cors());
 app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🔥");
-});
 
 app.post("/send-email", async (req, res) => {
   const { name, email, message, token } = req.body;
 
-  // 🔍 Log inicial
-  console.log("📥 Datos recibidos:", { name, email, message, token });
-
   if (!token) {
-    console.warn("❗ Token reCAPTCHA faltante");
-    return res.status(400).json({ message: "Token reCAPTCHA faltante" });
+    return res.status(400).json({ message: "Falta el token de reCAPTCHA" });
   }
 
   try {
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
-
-    // 🔍 Validar reCAPTCHA
-    const captchaRes = await fetch(verifyUrl, { method: "POST" });
-    const captchaData = await captchaRes.json();
-
-    console.log("🔒 Respuesta reCAPTCHA:", captchaData);
+    // Validar reCAPTCHA con Google
+    const verifyURL = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`;
+    const captchaResponse = await fetch(verifyURL, { method: "POST" });
+    const captchaData = await captchaResponse.json();
 
     if (!captchaData.success) {
-      console.warn("🚫 Captcha inválido");
-      return res.status(403).json({ message: "Captcha inválido" });
+      return res.status(400).json({ message: "Falló la verificación de reCAPTCHA" });
     }
 
-    // 🔧 Preparar transporte Nodemailer
+    // Si pasa el captcha, enviar el correo
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -50,30 +36,22 @@ app.post("/send-email", async (req, res) => {
       },
     });
 
-    console.log("📤 Enviando correo...");
-
-    await transporter.sendMail({
-      from: `"Portafolio Álvaro" <${process.env.EMAIL_USER}>`,
+    const mailOptions = {
+      from: `"Formulario de contacto" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_RECEIVER,
-      subject: `Nuevo mensaje de ${name}`,
-      html: `
-        <h2>Nuevo mensaje desde tu portafolio</h2>
-        <p><strong>Nombre:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Mensaje:</strong></p>
-        <p>${message}</p>
-      `,
-    });
+      subject: "Nuevo mensaje de contacto",
+      text: `Nombre: ${name}\nCorreo: ${email}\nMensaje:\n${message}`,
+    };
 
-    console.log("✅ Correo enviado con éxito");
-    res.status(200).json({ message: "Correo enviado con éxito ✅" });
-
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Correo enviado correctamente" });
   } catch (error) {
-    console.error("❌ Error al enviar:", error);
-    res.status(500).json({ message: "Error al enviar el correo ❌" });
+    console.error("❌ Error en servidor:", error);
+    res.status(500).json({ message: "Error al enviar el correo" });
   }
 });
 
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });

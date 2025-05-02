@@ -10,7 +10,9 @@ const app = express();
 
 // ✅ CONFIGURA CORS CORRECTAMENTE
 app.use(cors({
-  origin: "https://portafolio-alvaro-solano.vercel.app"
+  origin: "https://portafolio-alvaro-solano.vercel.app",
+  methods: ["POST"],
+  allowedHeaders: ["Content-Type"]
 }));
 
 app.use(express.json());

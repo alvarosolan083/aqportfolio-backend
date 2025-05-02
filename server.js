@@ -7,7 +7,12 @@ import nodemailer from "nodemailer";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// ✅ Configuración CORS solo para tu frontend desplegado
+app.use(cors({
+  origin: "https://portafolio-alvaro-solano.vercel.app"
+}));
+
 app.use(express.json());
 
 app.post("/send-email", async (req, res) => {
@@ -18,7 +23,6 @@ app.post("/send-email", async (req, res) => {
   }
 
   try {
-    // Validar reCAPTCHA con Google
     const verifyURL = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`;
     const captchaResponse = await fetch(verifyURL, { method: "POST" });
     const captchaData = await captchaResponse.json();
@@ -27,7 +31,6 @@ app.post("/send-email", async (req, res) => {
       return res.status(400).json({ message: "Falló la verificación de reCAPTCHA" });
     }
 
-    // Si pasa el captcha, enviar el correo
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {

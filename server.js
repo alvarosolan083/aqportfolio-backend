@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
@@ -7,17 +8,14 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Middleware CORS explícito para Render
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://portafolio-alvaro-solano.vercel.app");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// ✅ Middleware CORS usando la librería oficial
+const corsOptions = {
+  origin: "https://portafolio-alvaro-solano.vercel.app",
+  methods: ["POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Origin", "Accept"],
+};
 
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.post("/send-email", async (req, res) => {

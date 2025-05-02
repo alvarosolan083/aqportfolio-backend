@@ -8,14 +8,16 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CONFIGURA CORS CORRECTAMENTE
+// ✅ Configuración robusta de CORS
 app.use(cors({
   origin: "https://portafolio-alvaro-solano.vercel.app",
-  methods: ["POST"],
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
 
 app.use(express.json());
+
+app.options("/send-email", cors()); // <== Esto permite la preflight request
 
 app.post("/send-email", async (req, res) => {
   const { name, email, message, token } = req.body;

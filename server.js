@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Configuración CORS solo para tu frontend desplegado
+// ✅ CONFIGURA CORS CORRECTAMENTE
 app.use(cors({
   origin: "https://portafolio-alvaro-solano.vercel.app"
 }));

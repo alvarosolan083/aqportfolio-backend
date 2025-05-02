@@ -8,15 +8,18 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Middleware CORS usando la librería oficial
+// ✅ Middleware CORS oficial
 const corsOptions = {
   origin: "https://portafolio-alvaro-solano.vercel.app",
   methods: ["POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Origin", "Accept"],
+  allowedHeaders: ["Content-Type"],
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Esto es solo por si el navegador hace preflight manual
+app.options("/send-email", cors(corsOptions));
 
 app.post("/send-email", async (req, res) => {
   const { name, email, message, token } = req.body;
